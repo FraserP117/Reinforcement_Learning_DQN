@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from replay_memory import ReplayBuffer
 from dqn import DQNetwork, DoubleDQNetwork, DuelingDQNetwork, DuelingDoubleDQNetwork
-
+import pdb
 
 class BaseAgent():
     def __init__(
@@ -68,7 +68,9 @@ class BaseAgent():
     def learn(self):
         raise NotImplementedError
 
-
+'''
+Basic Deep Q-Learning Agent.
+'''
 class DQNAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(DQNAgent, self).__init__(*args, **kwargs)
@@ -126,7 +128,10 @@ class DQNAgent(BaseAgent):
 
         self.decrement_eps()
 
-
+'''
+Double Q-Learning Agent.
+Reduces over-estimations in action values.
+'''
 class DoubleDQNAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(DoubleDQNAgent, self).__init__(*args, **kwargs)
@@ -169,18 +174,14 @@ class DoubleDQNAgent(BaseAgent):
 
         # calculate the q-prediction and q-target values for the actions actually taken:
         indices = np.arange(self.batch_size)
-
-        q_pred = self.q_eval_net.forward(states)[indices, actions] # the action values for the batch of states
-        q_pred_next_states = self.q_eval_target_net.forward(next_states)
+        q_pred = self.q_eval_net.forward(states)[indices, actions] # the action values for the actions taken in the states visited in this batch
+        q_pred_next_states = self.q_eval_target_net.forward(next_states) # use target net params for action evaluation
+        q_pred_next_states[done_flags] = 0.0
         q_eval = self.q_eval_net.forward(next_states)
 
-        max_actions = T.argmax(q_eval, dim = 1)
-
-
-        q_pred_next_states[done_flags] = 0.0
-
         # calculate the td target (Doubble DQN)
-        q_target = reward + self.gamma * q_pred_next_states[indices, max_actions]
+        max_actions = T.argmax(q_eval, dim = 1) # use OG net params for action selection
+        q_target = reward + self.gamma * q_pred_next_states[indices, max_actions] # DDQN target using line 183 and line 178
 
         # calculate the loss
         loss = self.q_eval_net.loss(q_target, q_pred).to(self.q_eval_net.device)

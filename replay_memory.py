@@ -4,7 +4,7 @@ import numpy as np
 class ReplayBuffer():
     def __init__(self, max_size, input_shape, n_actions):
         self.mem_size = max_size
-        self.mem_cntr = 0
+        self.mem_cntr = 0 # memory counter
         self.state_memory = np.zeros((self.mem_size, *input_shape), dtype = np.float32)
         self.next_state_memory = np.zeros((self.mem_size, *input_shape), dtype = np.float32)
         self.action_memory = np.zeros(self.mem_size, dtype = np.int64)
@@ -25,7 +25,8 @@ class ReplayBuffer():
         ''' uniformy sample from the replay buffer '''
         # find pos of last stored memory
         # if filled memory, sample all way to mem_size else to mem_cntr
-        max_mem = min(self.mem_cntr, self.mem_size)
+        max_mem = min(self.mem_cntr, self.mem_size) # position of the last stored memory
+		# if filled entire meory, sample all the way to the memory size, if not sample up to mem_cntr
         batch = np.random.choice(max_mem, batch_size, replace = False)
 
         states = self.state_memory[batch]

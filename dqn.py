@@ -50,6 +50,7 @@ class DQNetwork(nn.Module):
         conv3 = F.relu(self.cv3(conv2))
         # conv3 shape is BS * n_filters * H * W
         # must reshape conv3 to BS * num_input_features to pass to fc1
+		# conv3 shape is BS x n_filters x H x W
         conv_state = conv3.view(conv3.size()[0], -1) # -conv3.size()[0] = BS, -1 = flatten all other dimensions
         flat1 = F.relu(self.fc1(conv_state))
         actions = self.fc2(flat1)

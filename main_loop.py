@@ -12,11 +12,13 @@ from dqn import DQNetwork
 from gym import wrappers
 
 
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
 def main():
 
     parser = argparse.ArgumentParser(description = "OG DQN Algrithm")
 
-    parser.add_argument('-n_games', type = int, default = 1, help = 'Number of games to play')
+    parser.add_argument('-n_games', type = int, default = 500, help = 'Number of games to play')
     parser.add_argument('-lr', type = float, default = 0.0001, help = 'Learning Rate for Optimizer')
     parser.add_argument('-eps_min', type = float, default = 0.1, help = 'Minimim value for epsilon')
     parser.add_argument('-gamma', type = float, default = 0.99, help = 'Discount factor')

@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from replay_memory import ReplayBuffer
 from dqn import DQNetwork
+import pdb
 
 LEARNING_RATE = 0.0001
 GAMMA = 0.99
@@ -43,7 +44,7 @@ class DQNAgent(object):
 
         self.q_eval_target_net = DQNetwork(
             self.lr, self.n_actions, input_dims = self.input_dims,
-            name = self.env_name + '_' + self.algo + '_q_eval',
+            name = self.env_name + '_' + self.algo + '_q_target',
             chkpt_dir = self.chkpt_dir
         )
 
@@ -62,6 +63,7 @@ class DQNAgent(object):
             self.q_eval_target_net.load_state_dict(self.q_eval_net.state_dict())
 
     def decrement_eps(self):
+		# linear decrement
         self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
     def store_transition(self, state, action, reward, next_state, done):
@@ -94,7 +96,7 @@ class DQNAgent(object):
         if self.memory.mem_cntr < self.batch_size:
             return
 
-        # sero gradients on the main net and replace the target network:
+        # zero gradients on the main net and replace the target network:
         self.q_eval_net.optimizer.zero_grad()
         self.replace_target_network()
 
@@ -104,6 +106,7 @@ class DQNAgent(object):
         # calculate the q-prediction and q-target values for the actions actually taken:
         indices = np.arange(self.batch_size)
         q_pred = self.q_eval_net.forward(states)[indices, actions] # the action values for the batch of states
+        # pdb.set_trace() # have a look at the done mask and q_pred dimensionality
         q_pred_next_states = self.q_eval_target_net.forward(next_states).max(dim = 1)[0] # take the max along the action dimension and take the first element in the tuple (value, index)
         q_pred_next_states[done_flags] = 0.0
 
